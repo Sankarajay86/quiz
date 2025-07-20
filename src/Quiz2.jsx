@@ -1,84 +1,157 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Quiz.css';
 
-function Quiz2() {
+const categories = [
+  { id: 9, name: "General Knowledge" },
+  { id: 23, name: "History" },
+  { id: 18, name: "Science: Computers" },
+  { id: 30, name: "Science: Gadgets" },
+  { id: 17, name: "Science & Nature" },
+];
+
+const Quiz = () => {
   const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [error, setError] = useState(null);
+  const [showQuiz2, setShowQuiz2] = useState(false);
+
+  // New state for tracking answer selection and result
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isAnswered, setIsAnswered] = useState(false);
 
   useEffect(() => {
-  fetch("/environment_mcqs.json")
-    .then((res) => res.json())
-    .then((data) => {
-      // Shuffle and pick 10 random questions
-      const shuffled = data.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 10);
-      setQuestions(selected);
-    })
-    .catch((err) => {
-      console.error("Failed to load JSON:", err);
-      alert("Error loading quiz questions.");
-    });
-}, []);
+    const fetchQuestions = async () => {
+      if (selectedCategory === null) return;
 
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(
+          `https://opentdb.com/api.php?amount=10&category=${selectedCategory}&difficulty=medium&type=multiple`
+        );
+        setQuestions(response.data.results);
+        setCurrentQuestion(0);
+        setScore(0);
+        setShowScore(false);
+      } catch (error) {
+        console.error("Error fetching questions: ", error);
+        setError("Failed to load questions. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleAnswer = (option) => {
-    setSelected(option);
-    if (option === questions[current].answer) {
-      setScore(score + 1);
+    fetchQuestions();
+  }, [selectedCategory]);
+
+  const handleAnswerClick = (answer) => {
+    if (isAnswered) return;
+
+    setSelectedAnswer(answer);
+    setIsAnswered(true);
+
+    const correctAnswer = questions[currentQuestion].correct_answer;
+    if (answer === correctAnswer) {
+      setScore((prevScore) => prevScore + 1);
     }
 
     setTimeout(() => {
-      setSelected(null);
-      if (current + 1 < questions.length) {
-        setCurrent(current + 1);
+      const nextQuestion = currentQuestion + 1;
+      if (nextQuestion < questions.length) {
+        setCurrentQuestion(nextQuestion);
+        setSelectedAnswer(null);
+        setIsAnswered(false);
       } else {
         setShowScore(true);
       }
-    }, 1000);
+    }, 2000);
   };
 
-  if (!questions.length) {
-    return <p className="text-center mt-10">Loading quiz questions...</p>;
-  }
+  const handleCategorySelect = (categoryId) => {
+    setSelectedCategory(categoryId);
+  };
 
-  if (showScore) {
+  if (selectedCategory === null) 
+    return ;
+  else if (selectedCategory === 2) {
     return (
-      <div className="text-center mt-10 p-4 border rounded shadow max-w-lg mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Quiz Completed!</h2>
-        <p className="text-lg">You scored {score} out of {questions.length}.</p>
+      <div className="category-selection">
+        <h2>Select a Quiz Category</h2>
+        {categories.map((cat) => (
+          <button key={cat.id} onClick={() => handleCategorySelect(cat.id)}>
+            {cat.name}
+          </button>
+        ))}
       </div>
     );
   }
 
+  if (loading || questions.length === 0) {
+    return (
+      <div className="loading-section">
+        {error ? <p>{error}</p> : <p>Loading questions...</p>}
+      </div>
+    );
+  }
+
+  if (showScore) {
+    return (
+      <div className="score-section">
+        <h2>You scored {score} out of {questions.length}!</h2>
+        <button onClick={() => setSelectedCategory(null)}>Play Again</button>
+      </div>
+    );
+  }
+
+  const currentQues = questions[currentQuestion];
+  const answers = [
+    ...currentQues.incorrect_answers,
+    currentQues.correct_answer,
+  ].sort(() => Math.random() - 0.5);
+
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 border rounded shadow bg-white">
-      <h3 className="text-lg font-semibold mb-4">
-        Question {current + 1} of {questions.length}
-      </h3>
-      <p className="mb-4 font-medium">{questions[current].question}</p>
-      <ul>
-        {questions[current].options.map((option, index) => (
-          <li key={index} className="mb-2">
+    <div className="quiz-container">
+      <div className="question-section">
+        <div className="question-count">
+          <span>Question {currentQuestion + 1}</span> / {questions.length}
+        </div>
+        <div
+          className="question-text"
+          dangerouslySetInnerHTML={{ __html: currentQues.question }}
+        />
+      </div>
+      <div className="answer-section">
+        {answers.map((answer, index) => {
+          let className = "answer-button";
+
+          if (isAnswered) {
+            const correctAnswer = currentQues.correct_answer;
+
+            if (answer === correctAnswer) {
+              className += " correct";
+            } else if (answer === selectedAnswer) {
+              className += " incorrect";
+            }
+          }
+
+          return (
             <button
-              onClick={() => handleAnswer(option)}
-              className={`w-full text-left p-2 border rounded transition-colors duration-200 ${
-                selected === option
-                  ? option === questions[current].answer
-                    ? "bg-green-300"
-                    : "bg-red-300"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-              disabled={selected !== null}
-            >
-              {option}
-            </button>
-          </li>
-        ))}
-      </ul>
+              key={index}
+              className={className}
+              onClick={() => handleAnswerClick(answer)}
+              dangerouslySetInnerHTML={{ __html: answer }}
+              disabled={isAnswered}
+            />
+          );
+        })}
+      </div>
     </div>
   );
-}
+};
 
-export default Quiz2;
+export default Quiz;

@@ -1,45 +1,107 @@
 .quiz-container {
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 700px;
+  margin: auto;
   padding: 20px;
-  text-align: center;
+  font-family: sans-serif;
+  background-image: url('./assets/quiz-background.jpg');
+  background-size: cover;
+  background-color: black;
 }
 
 .question-section {
   margin-bottom: 20px;
+  color: white;
 }
 
 .question-count {
-  font-size: 18px;
   margin-bottom: 10px;
+  font-weight: bold;
 }
 
 .question-text {
-  font-size: 20px;
-  margin-bottom: 20px;
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: white;
 }
 
 .answer-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
-button {
-  padding: 10px;
-  font-size: 16px;
+.answer-button {
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+  color: black;
+  padding: 12px;
+  margin: 6px 0;
   cursor: pointer;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+.answer-button:hover {
+  background-color: #e0e0e0;
+}
+.answer-button.correct {
+  background-color: #4caf50;
+  color: white;
+}
+
+.answer-button.incorrect {
+  background-color: #f44336;
+  color: white;
+}
+
+.answer-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ✅ Fixed selector typo */
+
+.score-section,
+.loading-section {
+  text-align: center;
+  padding: 30px;
+}
+
+.category-selection h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: white;
+}
+
+/* General button styling */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  margin: 10px;
+  border-radius: 4px;
+  height: auto; /* allows natural height */
 }
 
 button:hover {
-  background: #ddd;
+  background-color: #0056b3;
 }
 
-.score-section {
-  font-size: 24px;
-  text-align: center;
+.bonus-toggle {
   margin-top: 20px;
+}
+
+.bonus-quiz {
+  margin-top: 20px;
+}
+div.category-selection{
+  background-color: black;
+  background-image: url('./assets/istockphoto-1428792293-640x640.jpg');
+  background-size: cover; 
+  width: 100%;
+  height: 100vh;
+  text-align: center;
 }
